@@ -16,6 +16,7 @@ beforeEach(() => {
 });
 Product.create = jest.fn();
 Product.findAll = jest.fn();
+Product.findOne = jest.fn();
 
 describe("Product Controller Create", () => {
 	it("create 함수를 가지고 있는가?", () => {
@@ -82,10 +83,38 @@ describe("Product Controller get", () => {
 });
 
 describe("Product Controller getById", () => {
-	it("", () => {});
-	it("", () => {});
-	it("", () => {});
-	it("", () => {});
-	it("", () => {});
+	it("getProductById 함수를 가지고 있는가?", () => {
+		expect(typeof controller.getProductById).toBe("function");
+	});
+	it("getProductById 실행 시 model.getProductById가 실행되는가?", () => {
+		req.params.index = 1;
+		controller.getProductById(req, res, next);
+		expect(Product.findOne).toBeCalledWith({
+			where: {
+				index: req.params.index,
+			},
+		});
+	});
+	it("getProductById의 응답 내용과 응답 코드 확인", async () => {
+		Product.findOne.mockReturnValue(newProduct);
+		await controller.getProductById(req, res, next);
+		expect(res.statusCode).toBe(200);
+		expect(res._isEndCalled()).toBeTruthy();
+		expect(res._getJSONData()).toStrictEqual(newProduct);
+	});
+	it("getProductById 응답 실패 확인", async () => {
+		Product.findOne.mockReturnValue(null);
+		await controller.getProductById(req, res, next);
+		expect(res.statusCode).toBe(404);
+		expect(res._isEndCalled()).toBeTruthy();
+	});
+
+	it("getProductById 에러 처리", async () => {
+		const errorMessage = "";
+		const reject = Promise.reject(errorMessage);
+		Product.findOne.mockReturnValue(reject);
+		await controller.getProductById(req, res, next);
+		expect(next).toBeCalledWith(errorMessage);
+	});
 	it("", () => {});
 });
